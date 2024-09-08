@@ -707,7 +707,7 @@ function CheckPath(){
 function CheckInstall(){
   case $1 in
   NapCat)
-    if CheckPath "/opt/QQ/resources/app/app_launcher/napcat"
+    if CheckPath "/opt/QQ/resources/app/app_launcher/napcat/napcat/napcat.mjs"
     then
       return 0
     else
