@@ -56,7 +56,7 @@ case ${Number} in
 2)
   if StartType "${SessionName}" "${COMMAND}"
   then
-    START "${StartCommand}" ${Pm2Name}
+    START "${StartCommand}"
   else
     SecondMenu
   fi

@@ -327,11 +327,11 @@ fi
 }
 
 function Session(){
-  jq .SelectManageSession $AFYZHOME/config.json | sed 's|"||g'
+  jq .SelectManageSession $AFNTQQHOME/config.json | sed 's|"||g'
 }
 
 function StopBot(){
-CheckStatus $1 $2 $3
+CheckStatus $1 $2
 case $? in
 1)
   if ManageSession tmux stop $1
@@ -350,14 +350,6 @@ case $? in
   fi
   ;;
 3)
-  if ManageSession pm2 stop $3
-  then
-    return 0
-  else
-    return 1
-  fi
-  ;;
-4)
   PID=$(ps all | sed '/grep/d' | sed '/dialog/d' | sed '/whiptail/d' | grep $2 | awk '{print $1}')
   kill -9 ${PID}
   ;;
@@ -365,7 +357,7 @@ esac
 }
 
 function RestartBot(){
-CheckStatus $1 $2 $3
+CheckStatus $1 $2
 case $? in
 1)
   if ManageSession tmux restart $1
@@ -384,14 +376,6 @@ case $? in
   fi
   ;;
 3)
-  if ManageSession pm2 restart $3
-  then
-    return 0
-  else
-    return 1
-  fi
-  ;;
-4)
   PID=$(ps all | sed '/grep/d' | sed '/dialog/d' | sed '/whiptail/d' | grep $2 | awk '{print $1}')
   kill -9 ${PID}
   START $1 $3
@@ -400,7 +384,7 @@ esac
 }
 
 function LogBot(){
-CheckStatus $1 $2 $3
+CheckStatus $1 $2
 case $? in
 1)
   if ManageSession tmux log $1
@@ -419,14 +403,6 @@ case $? in
   fi
   ;;
 3)
-  if ManageSession pm2 log $3
-  then
-    return 0
-  else
-    return 1
-  fi
-  ;;
-4)
   echo $1 [前台] 启动
   return 1
   ;;
@@ -444,19 +420,16 @@ then
 elif screen -ls 2>&1 | grep -q $1
 then
   return 2
-elif pm2 list 2>&1 | sed '/stopped/d' | grep -q $3
-then
-  return 3
 elif PsAll $2
 then
-  return 4
+  return 3
 else
   return 0
 fi
 }
 
 function StartType(){
-CheckStatus $1 $2 $3
+CheckStatus $1 $2
 case $? in
 1)
   $(TUISoftware) --title "AF-IdentifyType" \
@@ -472,15 +445,9 @@ case $? in
 ;;
 3)
   $(TUISoftware) --title "AF-IdentifyType" \
-  --msgbox "$3 已在 [Pm2] 中启动" \
-  $(MsgboxSize)
-  return 3
-;;
-4)
-  $(TUISoftware) --title "AF-IdentifyType" \
   --msgbox "$3 已在 [前台] 中启动" \
   $(MsgboxSize)
-  return 4
+  return 3
 ;;
 esac
 }
@@ -578,112 +545,19 @@ screen)
       ;;
   esac
 ;;
-pm2)
-  case $2 in
-    start)
-      if pm2 start --name $3 "$4"
-      then
-        return 0
-      else
-        return 1
-      fi
-    ;;
-    stop)
-      if pm2 stop $3
-      then
-        return 0
-      else
-        return 1
-      fi
-    ;;
-    restart)
-      if pm2 stop $3 && pm2 start --name $3 "$4"
-      then
-        return 0
-      else
-        return 1
-      fi
-    ;;
-    log)
-      if pm2 logs $3 | sed '/PM2/d'
-      then
-        return 0
-      else
-        return 1
-      fi
-    ;;
-    list)
-      if pm2 list
-      then
-        return 0
-      else
-        return 1
-      fi
-    ;;
-  esac
-;;
 esac
 }
 
-function CheckRedisServer(){
-function PedisCliPing(){
-if [ "$(redis-cli ping 2>&1)" == "PONG" ]
-then
-  return 0
-else
-  return 1
-fi
-}
-if $(PedisCliPing)
-then
-  echo -e ${cyan}Redis-Server${yellow} 已经启动${background}
-else
-  echo -e ${cyan}Redis-Server${yellow} 正在启动${background}
-  $(nohup redis-server > /dev/null 2>&1 &)
-  until PedisCliPing
-  do
-    sleep 0.2s
-  done
-  echo -e ${cyan}Redis-Server${yellow} 启动成功${background}
-fi
-}
-
-function CheckSignApi(){
-  local file="config/config/bot.yaml"
-  SignApi=$(grep sign_api_addr ${file} | sed 's|sign_api_addr: ||g')
-  if [ -n ${SignApi} ]
-  then
-    echo -e ${yellow}正在检查签名可用性${background}
-    if curl -sL ${SignApi} | tee grep com.tencent.mobileqq
-    then
-      echo
-      echo -e ${green}签名可用${background}
-    else
-      echo
-      echo -e ${red}签名不可达${background}
-    fi
-  fi
-}
-
 function START(){
-  CheckRedisServer
   local Command="$1"
   ${Command}
-  Pm2List=$(pm2 list 2>&1)
-  if echo ${Pm2List} | grep -q $2
-  then
-    if ! $(pm2 list 2>&1 | grep $2 | grep -q stopped)
-    then
-      pm2 delete $2 > /dev/null 2>&1
-      START "$1" $2
-    fi
-  fi
+  echo -e ${cyan}回车返回${background}
 }
 
 function ProgressBar(){
   {
     i=0
-    while CheckStatus $1 $2 $3
+    while CheckStatus $1 $2
     do
       echo $((i++))
       if echo ${i} | grep -q 100
@@ -692,7 +566,7 @@ function ProgressBar(){
       fi
     done
     return 0
-  } | $(TUISoftware) --gauge "${BotName} [正在启动]" $(MsgboxSize) 0
+  } | $(TUISoftware) --gauge "$1 [正在启动]" $(MsgboxSize) 0
 }
 
 function CheckPath(){

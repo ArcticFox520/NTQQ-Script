@@ -49,7 +49,7 @@ function indexJS(){
 local file="/opt/QQ/resources/app/app_launcher/index.js"
 local folder="/opt/QQ/resources/app/app_launcher/napcat"
 echo -e ${yellow}正在解压 ${cyan}NapCat.zip${background}
-if yes y | unzip -y -q NapCat.zip -d ${folder}
+if yes y | unzip -q NapCat.zip -d ${folder}
 then
   echo -e ${green}解压成功${background}
 else
