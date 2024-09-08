@@ -1,0 +1,192 @@
+#!/bin/env bash
+source ../config
+
+function SecondMenu(){
+Number=$($(TUISoftware) \
+--title "${TitleText}" \
+--menu "$(MenuTips)" \
+$(MenuSize) \
+"1" "启动运行" \
+"2" "前台启动" \
+"3" "停止运行" \
+"4" "重新启动" \
+"5" "打开日志" \
+"6" "强制更新" \
+"7" "其他功能" \
+"8" "进入bash" \
+"0" "  返回  " \
+3>&1 1>&2 2>&3)
+case ${Number} in
+1)
+  if StartType "${SessionName}" "${COMMAND}"
+  then
+    if Error=$(ManageSession $(Session) start "${SessionName}" "$(eval '${StartCOMMAND}')")
+    then
+      if ProgressBar "${SessionName}" "${COMMAND}"
+      then
+        if ($(TUISoftware) --title "${TitleText}"  \
+        --yes-button "打开日志" \
+        --no-button "返回菜单" \
+        --yesno "${SessionName} [启动成功]" \
+        $(MsgboxSize))
+        then
+          if ! Error=$(ManageSession $(Session) log "${SessionName}")
+          then
+            $(TUISoftware) --title "${TitleText}" \
+            --msgbox "${SessionName} [打开失败] \n原因: ${Error}" \
+            $(MsgboxSize)
+            SecondMenu
+          fi
+        else
+          SecondMenu
+        fi
+      else
+        $(TUISoftware) --title "${TitleText}" \
+        --msgbox "${SessionName} [启动失败] \n原因: ${Error}" \
+        $(MsgboxSize)
+        SecondMenu
+      fi
+    else
+      SecondMenu
+    fi
+  else
+    SecondMenu
+  fi
+;;
+2)
+  if StartType "${SessionName}" "${COMMAND}"
+  then
+    START "${StartCommand}" ${Pm2Name}
+  else
+    SecondMenu
+  fi
+;;
+3)
+  if CheckStatus "${SessionName}" "${COMMAND}"
+  then
+    $(TUISoftware) --title "${TitleText}" \
+    --msgbox "${SessionName} [无法停止] \n原因: ${SessionName} [未运行]" \
+    $(MsgboxSize)
+    SecondMenu
+  else
+    if Error=$(StopBot "${SessionName}" "${COMMAND}")
+    then
+      $(TUISoftware) --title "${TitleText}" \
+      --msgbox "${SessionName} [停止成功]" \
+      $(MsgboxSize)
+      SecondMenu
+    else
+      $(TUISoftware) --title "${TitleText}" \
+      --msgbox "${SessionName} [停止错误] \n原因: ${Error}" \
+      $(MsgboxSize)
+      SecondMenu
+    fi
+  fi
+;;
+4)
+  if CheckStatus "${SessionName}" "${COMMAND}"
+  then
+    $(TUISoftware) --title "${TitleText}" \
+    --msgbox "${SessionName} [无法重启] \n原因: ${SessionName} [未运行]" \
+    $(MsgboxSize)
+    SecondMenu
+  else
+    if Error=$(RestartBot "${SessionName}" "${COMMAND}")
+    then
+      if ProgressBar "${SessionName}" "${COMMAND}"
+      then
+        if ($(TUISoftware) --title "${TitleText}"  \
+        --yes-button "打开日志" \
+        --no-button "返回菜单" \
+        --yesno "${SessionName} [重启成功]" \
+        $(MsgboxSize))
+        then
+          if ! Error=$(ManageSession $(Session) log "${SessionName}")
+          then
+            $(TUISoftware) --title "${TitleText}" \
+            --msgbox "${SessionName} [打开失败] \n原因: ${Error}" \
+            $(MsgboxSize)
+            SecondMenu
+          fi
+        else
+          SecondMenu
+        fi
+      else
+        $(TUISoftware) --title "${TitleText}" \
+        --msgbox "${SessionName} [启动失败] \n原因: ${Error}" \
+        $(MsgboxSize)
+        SecondMenu
+      fi
+    else
+      $(TUISoftware) --title "${TitleText}" \
+      --msgbox "${SessionName} [重启错误] \n原因: ${Error}" \
+      $(MsgboxSize)
+      SecondMenu
+    fi
+  fi
+;;
+5)
+  if CheckStatus "${SessionName}" "${COMMAND}"
+  then
+    $(TUISoftware) --title "${TitleText}" \
+    --msgbox "${SessionName} 日志 [无法打开] \n原因: ${SessionName} [未运行]" \
+    $(MsgboxSize)
+    SecondMenu
+  else
+    if ! Error=$(LogBot "${SessionName}" "${COMMAND}")
+    then
+      $(TUISoftware) --title "${TitleText}" \
+      --msgbox "${SessionName} [错误] \n原因: ${Error}" \
+      $(MsgboxSize)
+      SecondMenu
+    fi
+  fi
+;;
+esac
+}
+
+function MainMenu(){
+Number=$($(TUISoftware) \
+--title "AF-Script" \
+--menu "$(MenuTips)" \
+$(MenuSize) \
+"1" "NapCatQQ" \
+"0" " 退出脚本 " \
+3>&1 1>&2 2>&3)
+case ${Number} in
+1)
+  if CheckInstall NapCat
+  then
+    SessionName="NapCatQQ"
+    COMMAND="qq --no-sandbox"
+    StartCOMMAND="xvfb-run qq --no-sandbox"
+    SecondMenu
+  else
+    if bash ../Install/NapCatQQ
+    then
+      SessionName="NapCatQQ"
+      COMMAND="qq --no-sandbox"
+      StartCOMMAND="xvfb-run qq --no-sandbox"
+      SecondMenu
+    else
+      exit 1
+    fi
+  fi
+;;
+0)
+  return 5
+;;
+esac
+}
+function WhileMainMenu(){
+  while true
+  do
+    MainMenu
+    if [ $? == 5 ]
+    then
+      exit 0
+    fi
+    WhileMainMenu
+  done
+}
+WhileMainMenu
