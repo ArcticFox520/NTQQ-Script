@@ -27,6 +27,7 @@ function startInstall(){
   then
     return 1
   fi
+  rm -rf QQ.deb
   if CheckNetwork
   then
     GithubMirror=("https://mirror.ghproxy.com/https://github.com/" "https://gitdl.cn/https://github.com/" "https://gh.arcticfox.top/https://github.com/")
@@ -48,11 +49,11 @@ function indexJS(){
 local file="/opt/QQ/resources/app/app_launcher/index.js"
 local folder="/opt/QQ/resources/app/app_launcher/napcat"
 echo -e ${yellow}正在解压 ${cyan}NapCat.zip${background}
-if unzip -q NapCat.zip -d ${folder}
+if yes y | unzip -y -q NapCat.zip -d ${folder}
 then
   echo -e ${green}解压成功${background}
 else
-  echo -e ${green}解压失败${background}
+  echo -e ${red}解压失败${background}
   return 1
 fi
 cat > index.js <<- FOX
@@ -68,6 +69,7 @@ if (hasNapcatParam) {
 }
 FOX
 mv -vf index.js ${file}
+rm -rf NapCat.zip
 }
 
 if ! installPKG
