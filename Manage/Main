@@ -12,7 +12,7 @@ $(MenuSize) \
 "4" "重新启动" \
 "5" "打开日志" \
 "6" "强制更新" \
-"8" "进入bash" \
+"7" "立刻卸载" \
 "0" "  返回  " \
 3>&1 1>&2 2>&3)
 case ${Number} in
@@ -142,7 +142,16 @@ case ${Number} in
   fi
 ;;
 6)
-  bash $AFNTQQHOME/Update/NapCatQQ
+  bash $AFNTQQHOME/Update/${SessionName}
+  
+;;
+7)
+  echo -e ${red}将在3秒后 卸载${SessionName}${background}
+  sleep 3s
+  echo -e ${yellow}正在卸载 ${SessionName}${background}
+  bash $AFNTQQHOME/Remove/${SessionName}
+  echo -en ${cyan}命令执行完成 ${cyan}回车返回${background};read
+  MainMenu
 ;;
 esac
 }

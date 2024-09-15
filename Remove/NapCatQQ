@@ -1,0 +1,5 @@
+#!/bin/env bash
+source $AFNTQQHOME/config
+
+apt autoremove -y linuxqq
+rm -rvf /opt/QQ

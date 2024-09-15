@@ -56,3 +56,15 @@ FOX
 mv -vf index.js ${file}
 rm -rf NapCat.zip
 }
+
+if ! startInstall
+then
+  ErrorReturn
+  exit 1
+fi
+
+if ! indexJS
+then
+  ErrorReturn
+  exit 1
+fi
