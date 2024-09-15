@@ -410,17 +410,17 @@ esac
 }
 
 function PsAll(){
-  ps all | sed '/grep/d' | sed '/dialog/d' | sed '/whiptail/d' | grep -q $1
+  ps all | sed '/grep/d' | sed '/dialog/d' | sed '/whiptail/d' | grep -q "$1"
 }
 
 function CheckStatus(){
-if tmux ls 2>&1 | grep -q $1
+if tmux ls 2>&1 | grep -q "$1"
 then
   return 1
-elif screen -ls 2>&1 | grep -q $1
+elif screen -ls 2>&1 | grep -q "$1"
 then
   return 2
-elif PsAll $2
+elif PsAll "$2"
 then
   return 3
 else
@@ -429,7 +429,7 @@ fi
 }
 
 function StartType(){
-CheckStatus $1 $2
+CheckStatus "$1" "$2"
 case $? in
 1)
   $(TUISoftware) --title "AF-IdentifyType" \

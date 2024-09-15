@@ -1,0 +1,10 @@
+#!/bin/env bash
+export Path=$HOME
+export AFNTQQHOME="AF_HOME_Path"
+cd $AFNTQQHOME/Manage
+if [ ! -z $1 ]
+then
+  bash Command $@
+  exit
+fi
+bash Main "$@"

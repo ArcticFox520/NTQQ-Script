@@ -1,0 +1,57 @@
+#!/bin/env bash
+source $AFNTQQHOME/config
+QQURL="https://dldir1.qq.com/qqfile/qq/QQNT/0724892e/linuxqq_3.2.12-27597_$(Arch 1).deb"
+NapCatQQURL="NapNeko/NapCatQQ/releases/latest/download/NapCat.Framework.zip"
+
+function startInstall(){
+  apt autoremove -y linuxqq
+  rm -rf /opt/QQ > /dev/null 2>&1
+  Download QQ.deb ${QQURL}
+  if ! apt install -y ./QQ.deb
+  then
+    return 1
+  fi
+  rm -rf QQ.deb
+  if CheckNetwork
+  then
+    GithubMirror=("https://mirror.ghproxy.com/https://github.com/" "https://gitdl.cn/https://github.com/" "https://gh.arcticfox.top/https://github.com/")
+  else
+    GithubMirror=("https://github.com/")
+  fi
+  for i in ${GithubMirror[@]}
+  do
+    NapCatQQ_URL="${i}${NapCatQQURL}"
+    if Download NapCat.zip ${NapCatQQ_URL}
+    then
+      break
+    fi
+  done
+  indexJS
+}
+
+function indexJS(){
+local file="/opt/QQ/resources/app/app_launcher/index.js"
+local folder="/opt/QQ/resources/app/app_launcher/napcat"
+echo -e ${yellow}正在解压 ${cyan}NapCat.zip${background}
+if yes y | unzip -q NapCat.zip -d ${folder}
+then
+  echo -e ${green}解压成功${background}
+else
+  echo -e ${red}解压失败${background}
+  return 1
+fi
+cat > index.js <<- FOX
+const path = require('path');
+const CurrentPath = path.dirname(__filename)
+const hasNapcatParam = process.argv.includes('--no-sandbox');
+if (hasNapcatParam) {
+    (async () => {
+        await import("file://" + path.join(CurrentPath, './napcat/napcat.mjs'));
+    })();
+} else {
+    require('./launcher.node').load('external_index', module);
+}
+FOX
+mv -vf index.js ${file}
+rm -rf NapCat.zip
+}
