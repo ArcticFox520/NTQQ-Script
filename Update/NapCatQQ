@@ -32,6 +32,7 @@ function startInstall(){
 function indexJS(){
 local file="/opt/QQ/resources/app/app_launcher/index.js"
 local folder="/opt/QQ/resources/app/app_launcher/napcat"
+mkdir -p ${folder}
 echo -e ${yellow}正在解压 ${cyan}NapCat.zip${background}
 if yes y | unzip -q NapCat.zip -d ${folder}
 then
