@@ -22,6 +22,10 @@ function installPKG(){
 }
 
 function startInstall(){
+  if [ -e /opt/QQ/resources/app/app_launcher/index.js ]
+  then
+    return 0
+  fi
   Download QQ.deb ${QQURL}
   if ! apt install -y ./QQ.deb
   then
